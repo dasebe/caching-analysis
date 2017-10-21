@@ -18,10 +18,10 @@ x <-"
 trace lr ur lx ly type tname mlx mly
 1 msr_proj_0.tr 24 32 .7 .23 Storage Proj0 .75 .83
 3 msr_proj_2.tr 28 38 .7 .67 Storage Proj2 .75 .23
-4 msr_src1_0.tr 30 38 .3 .65 Storage Src1 .25 .45
-5 w100m.tr 28 38 .7 .23 CDN smallSF .75 .83
+4 msr_src1_0.tr 30 36 .3 .65 Storage Src1 .25 .45
+5 w100m.tr 28 36 .7 .23 CDN smallSF .75 .83
 6 traceUS100m.tr 28 38 .7 .23 CDN largeUS .75 .83
-7 traceHK100m.tr 28 40 .7 .23 CDN largeHK .75 .83
+7 traceHK100m.tr 28 38 .7 .23 CDN largeHK .75 .83
 "            
 traceprops <- data.table(read.table(textConnection(x)))
 
@@ -247,12 +247,10 @@ for(i in 1:nrow(traceprops)) {
     ly <- rw$mly
     maxh <- dt3[,max(1-h/r)]*1.03
     pl <- ggplot(dt3,aes(logsize,1-h/r,color=type2,shape=type2))+
-        geom_line(aes(size=type2))+
+        geom_line(size=0.5)+
         geom_point(size=1.8)+
-    scale_color_manual("",values = rev(c("#","#504ea9","#504ea9","#c43333","#c43333","#c43333")))+  #33b042
-#    scale_color_manual("",values = c("#a79986","#888888","#444444","#C50003","#7570b3","#66a61e","#e7298a","#e6ab02","#a6761d","#d95f02"))+
-#    scale_fill_manual("",values = c("#444444","#e7298a","#619d65","#d95f02"))+ #"#C50003","#7570b3","#66a61e",,"#e6ab02"
-    scale_shape_manual("",values=1:20)+
+    scale_color_manual("",values = rev(c("#edb459","#27338a","#27338a","#db6a6a","#db6a6a","#db6a6a")))+  # gree 33b042   #lila 835b
+    scale_shape_manual("",values=rev(c(5,1,2,0,20,4)))+
     scale_size_manual("",values=c(0.5,0.5,0.5,0.9,0.9,0.5))+
     scale_y_continuous("Miss Ratio",expand=c(0,0))+
     scale_x_continuous("Cache Size",expand=c(0,0),breaks=bbreaks,labels=blabels)+
@@ -265,51 +263,16 @@ for(i in 1:nrow(traceprops)) {
     coord_cartesian(xlim=c(lrange,rrange),ylim=c(0,maxh))
 #
     oname <- paste("/tmp/plots/opt_belady_missratio_",tr,".pdf",sep="")
-    pdf(oname,3.4,2.5)
+    pdf(oname,3.0,2.4)
     print(pl)
     dev.off()
 }
-
-
-## hit ratio
-
-for(i in 1:nrow(traceprops)) {
-    rw <- traceprops[i]
-    tr <- rw$trace
-    print(tr)
-    lrange <- rw$lr
-    rrange <- rw$ur
-    dt3 <- dt2[trace==tr & logsize>=lrange & logsize<=rrange]
-    lx <- rw$lx
-    ly <- rw$ly
-    pl <- ggplot(dt3,aes(logsize,h/r,color=type2,shape=type2))+
-        geom_line(size=0.5)+
-        geom_point(size=1.5)+
-    scale_color_manual("",values = c("#00b8ce","#888888","#444444","#C50003","#7570b3","#66a61e","#e7298a","#e6ab02","#a6761d","#d95f02"))+
-    scale_shape_manual("",values=1:20)+
-    scale_y_continuous("Object Hit Ratio",expand=c(0,0))+
-    scale_x_continuous("Cache Size",expand=c(0,0),breaks=bbreaks,labels=blabels)+
-    theme(legend.key.width = unit(0.5, "cm"),
-          legend.key.height = unit(0.28, "cm"))+
-    theme(legend.position = c(lx,ly))+
-    theme(legend.text = element_text(size = rel(0.8)))+
-    theme(axis.title.x = element_text(size = rel(1.1),vjust=-.1),axis.title.y = element_text(size = rel(1.1),vjust=1.2))+
-        theme(legend.background = element_rect(fill="transparent"))+
-    coord_cartesian(xlim=c(lrange,rrange),ylim=c(0,1.0))
-#
-    oname <- paste("/tmp/plots/opt_belady_",tr,".pdf",sep="")
-    pdf(oname,3,2.6)
-    print(pl)
-    dev.off()
-}
-
-
 
 
 
 # opt vs sims
 
-dt <- rbind(lboundall2,fluid,util,belady2,sims2)
+dt <- rbind(lboundall2,fluid,belady2,sims2)
 dt[,r:=max(r),by=trace]
 
 opts <- c("inf","fluid2","lbound")
@@ -331,6 +294,8 @@ dt2[,unique(type2)]
 
 ## miss ratio
 
+# best sim
+
 for(i in 1:nrow(traceprops)) {
     rw <- traceprops[i]
     tr <- rw$trace
@@ -341,19 +306,18 @@ for(i in 1:nrow(traceprops)) {
     dt3[,ohr:=h/r]
     dt3[type!="inf",loss:=ohr/max(ohr),by=logsize]
     # selected max ohr policy/heuristic
-    dt4 <- dt3[type %in% sims,median(loss),by=type]
-    dt5 <- dt3[type %in% heuristics,median(loss),by=type]
+    dt4 <- dt3[type %in% sims,mean(loss),by=type]
+    dt5 <- dt3[type %in% heuristics,mean(loss),by=type]
     selected <- c(opts,dt4[V1==max(V1),as.character(type)],dt5[V1==max(V1),as.character(type)])
     dt6 <- dt3[type %in% selected]
     lx <- rw$mlx
     ly <- rw$mly
     maxh <- dt3[,max(1-h/r)]*1.03
     pl <- ggplot(dt6,aes(logsize,1-h/r,color=type2,shape=type2))+
-        geom_line(aes(size=type2))+
+        geom_line(size=0.5)+
         geom_point(size=1.8)+
-    scale_color_manual("",values = rev(c("#a79986","#001eff","#001eff","#bc8835","#bc5535","#d0648f")))+
-    scale_color_manual("",values = rev(c("#a79986","#001eff","#001eff","#bc8835","#bc5535","#d0648f")))+
-    scale_shape_manual("",values=1:20)+
+    scale_color_manual("",values = rev(c("#27338a","#27338a","#db6a6a","#33b042")))+  # gree 33b042   #lila 835bde
+    scale_shape_manual("",values=rev(c(1,2,0,20)))+
     scale_size_manual("",values=c(0.5,0.5,0.5,0.9,0.9,0.5))+
     scale_y_continuous("Miss Ratio",expand=c(0,0))+
     scale_x_continuous("Cache Size",expand=c(0,0),breaks=bbreaks,labels=blabels)+
@@ -372,6 +336,8 @@ for(i in 1:nrow(traceprops)) {
 }
 
 
+# best sim at any time
+
 for(i in 1:nrow(traceprops)) {
     rw <- traceprops[i]
     tr <- rw$trace
@@ -389,15 +355,17 @@ for(i in 1:nrow(traceprops)) {
     dt4d <- dt4[,list(h=max(h),r=max(r),type="sim",type2="Policies"),by=list(trace,logsize)]
     dt5d <- dt5[,list(h=max(h),r=max(r),type="heuristic",type2="Heuristics"),by=list(trace,logsize)]
     dt7 <- rbind(dt4d,dt5d,dt6)
+    llbreaks=rev(c(opts,heuristics,"heuristic",sims,"sim"))
+    llabels=rev(c(lopt,lheuristics,"Prior Offline",lsims,"Prior Online"))
+    dt7[,type2:=factor(type,levels=llbreaks,labels=llabels,ordered=TRUE)]
     lx <- rw$mlx
     ly <- rw$mly
     maxh <- dt3[,max(1-h/r)]*1.03
     pl <- ggplot(dt7,aes(logsize,1-h/r,color=type2,shape=type2))+
-        geom_line(aes(size=type2))+
+        geom_line(size=0.5)+
         geom_point(size=1.8)+
-    scale_color_manual("",values = rev(c("#a79986","#001eff","#001eff","#bc8835","#bc5535","#d0648f")))+
-    scale_color_manual("",values = rev(c("#a79986","#001eff","#001eff","#bc8835","#bc5535","#d0648f")))+
-    scale_shape_manual("",values=1:20)+
+    scale_color_manual("",values = rev(c("#27338a","#27338a","#db6a6a","#33b042")))+  # gree 33b042   #lila 835bde
+    scale_shape_manual("",values=rev(c(1,2,0,20)))+
     scale_size_manual("",values=c(0.5,0.5,0.5,0.9,0.9,0.5))+
     scale_y_continuous("Miss Ratio",expand=c(0,0))+
     scale_x_continuous("Cache Size",expand=c(0,0),breaks=bbreaks,labels=blabels)+
@@ -725,7 +693,6 @@ exactall2 <- rbind(
 traces <- traceprops$trace
 traces2 <- gsub("100m","",traces)
 
-
 ofma <- foreach(trace=traces2, .combine=rbind, .errorhandling='remove') %:%
     foreach(format=c(".log",".log_cpy"), .combine=rbind, .errorhandling='remove') %:%
     foreach(logsize=logsizes, .combine=rbind, .errorhandling='remove') %do% {
@@ -736,6 +703,23 @@ ofma <- foreach(trace=traces2, .combine=rbind, .errorhandling='remove') %:%
             tmp <- data.table(read.table(fname))
             print(paste("good",fname))
             tmp[,list(type=V1,trace,logsize,h=V4,r=V6)]
+        }
+}
+
+
+
+# P-FOO LNS
+
+#LM
+lns <- foreach(trace=traces2, .combine=rbind, .errorhandling='remove') %:%
+    foreach(acc=c("500000"), .combine=rbind, .errorhandling='remove') %:%
+    foreach(logsize=logsizes, .combine=rbind, .errorhandling='remove') %do% { 
+        fname <- paste("~/LemonMCFlns/nsolution/sol_lnslboundLM_",trace,"5m_",acc,"_",logsize,".logf",sep="")
+        if(file.exists(fname) & file.info(fname)$size > 0){
+            print(fname)
+            tmp <- data.table(read.table(fname))
+            tmp2 <- last(tmp)
+            data.table(type="lbound",trace,logsize,h=tmp2$V14,r=tmp2$V16)
         }
 }
 
@@ -760,23 +744,48 @@ localratio <- foreach(trace=traces2, .combine=rbind, .errorhandling=errorhandler
 }
 
 
-localratio
-ofma
-exactall2
+# fluid, infinite
 
-dt <- rbind(exactall2,ofma,localratio)
-dt <- dt[,list(h=max(h,na.rm=TRUE),r=max(r,na.rm=TRUE)),by=list(type,trace,logsize)]
+# fluid model
+smallfluid <- foreach(trace=traces2, .combine=rbind, .errorhandling='remove') %do% {
+    fname <- paste("~/LemonMCFlns/nsolution/sol_fluid_",trace,"5m.log",sep="")
+    print(fname)
+    tmp <- data.table(read.table(fname))
+    tmp[,list(type=V1,trace,logsize=log2(V2),h=V3,r=V4)]
+}
+
+# utility
+smallutil <- foreach(trace=traces2, .combine=rbind, .errorhandling='remove') %do% {
+    fname <- paste("~/LemonMCFofma/nsolution/sol_utilityknapsack_",trace,"5m.log",sep="")
+    print(fname)
+    tmp <- data.table(read.table(fname))
+    rbind(
+        tmp[V1==-1,list(type="inf",trace,logsize=1:50,h=V2,r=V3)]
+        )
+}
+
+
+
+dt <- rbind(exactall2,ofma,lns,smallfluid,smallutil)
+
+dt <- dt[type!="OF",list(h=max(h,na.rm=TRUE),r=max(r,na.rm=TRUE)),by=list(type,trace,logsize)]
 dt[type=="ufoo",maxh:=h]
 dt[,maxh:=max(maxh,na.rm=TRUE),by=list(logsize,trace)]
-dt[ifelse(maxh<1,FALSE,h>maxh),h:=maxh]
+dt[type!="inf" & type!="fluid2" & ifelse(maxh<1,FALSE,h>maxh),h:=maxh]
 dt[,maxh:=NULL]
 
 dt[,r:=max(r),by=trace]
 
 dt[,unique(type)]
 
-llbreaks=c("ufoo","lfoo","OFMA","localratio")
-llabels=c("FOO (U)","FOO (L)","OFMA (L)","LocalRatio (L)")
+llbreaks=rev(c("inf","fluid2","ufoo","lfoo","lbound","OFMA"))
+llabels=rev(c("Inf Capacity (L)","P-FOO (L)","FOO (L)","FOO (U)","P-FOO (U)","OFMA (U)"))
+lcolors <- rev(
+    c("edb459","27338a", "68b5f6","68b5f6", "27338a", "db6a6a"))
+lshapes <- rev(c(5,1,20,20,2,0))
+
+### SINGLE STEP
+lcolors <- paste(rep("#",length(lcolors)),lcolors,sep="")
 
 dt2 <- dt[type %in% llbreaks]
 dt2[,type2:=factor(type,levels=llbreaks,labels=llabels,ordered=TRUE)]
@@ -787,11 +796,93 @@ bbreaks <- c(24,27,30,33,36,39,42)
 blabels <- c("16MB","128MB","1GB","8GB","128GB","512GB","4TB  ")
 
 
+
+# missratio
+
+for(i in 1:nrow(traceprops)) {
+    rw <- traceprops[i]
+    tr <- gsub("100m","",rw$trace) ## check this for other traces
+    print(tr)
+    lrange <- rw$lr
+    rrange <- rw$ur
+    dt3 <- dt2[trace==tr & logsize>=lrange & logsize<=rrange]
+    if(nrow(dt3)==0) {
+        next
+    }
+    lx <- rw$mlx
+    ly <- rw$mly
+    maxh <- dt3[,max(1-h/r)]*1.02
+    pl <- ggplot(dt3,aes(logsize,1-h/r,color=type2,shape=type2))+
+        geom_line(size=0.5)+
+        geom_point(size=1.8)+
+    scale_color_manual("",values = lcolors)+
+    scale_shape_manual("",values=lshapes)+
+    scale_y_continuous("Miss Ratio",expand=c(0,0))+
+    scale_x_continuous("Cache Size",expand=c(0,0),breaks=bbreaks,labels=blabels)+
+    theme(legend.key.width = unit(0.5, "cm"),
+          legend.key.height = unit(0.28, "cm"))+
+    theme(legend.position = c(lx,ly))+
+    theme(legend.text = element_text(size = rel(0.8)))+
+    theme(axis.title.x = element_text(size = rel(1.1),vjust=-.1),axis.title.y = element_text(size = rel(1.1),vjust=1.2))+
+        theme(legend.background = element_rect(fill="transparent"))+
+    coord_cartesian(xlim=c(lrange,rrange),ylim=c(0,maxh))
+#
+    oname <- paste("/tmp/plots/opt_foo_missratio_",tr,".pdf",sep="")
+    pdf(oname,3.4,2.5)
+    print(pl)
+    dev.off()
+}
+
+
+# missratio
+
+i <- 2
+
+    rw <- traceprops[i]
+    tr <- gsub("100m","",rw$trace) ## check this for other traces
+    print(tr)
+    lrange <- rw$lr
+    rrange <- rw$ur
+    dt3 <- dt2[trace==tr & logsize>=lrange & logsize<=rrange]
+    if(nrow(dt3)==0) {
+        next
+    }
+    lx <- rw$mlx
+    ly <- rw$mly
+    maxh <- dt3[,max(1-h/r)]*1.02
+    pl <- ggplot(dt3,aes(logsize,1-h/r,color=type2,shape=type2))+
+        geom_line(size=0.5)+
+        geom_point(size=1.8)+
+    scale_color_manual("",values = lcolors)+
+    scale_shape_manual("",values=lshapes)+
+    scale_y_continuous("Miss Ratio (different scale)",expand=c(0,0))+
+    scale_x_continuous("Cache Size",expand=c(0,0),breaks=bbreaks,labels=blabels)+
+    theme(legend.key.width = unit(0.5, "cm"),
+          legend.key.height = unit(0.28, "cm"))+
+    theme(legend.position = c(lx,ly))+
+    theme(legend.text = element_text(size = rel(0.8)))+
+    theme(axis.title.x = element_text(size = rel(1.1),vjust=-.1),axis.title.y = element_text(size = rel(1.1),vjust=1.2))+
+        theme(legend.background = element_rect(fill="transparent"))+
+    coord_cartesian(xlim=c(lrange,rrange),ylim=c(0.99,1))
+#
+    oname <- paste("/tmp/plots/opt_foo_missratio09_",tr,".pdf",sep="")
+    pdf(oname,3.4,2.5)
+    print(pl)
+    dev.off()
+
+    dev.off()
+
+
+
+
+
+
+
 ### hit ratio
 
 for(i in 1:nrow(traceprops)) {
     rw <- traceprops[i]
-    tr <- traces2 <- gsub("100m","",rw$trace) ## check this for other traces
+    tr <- gsub("100m","",rw$trace) ## check this for other traces
     lrange <- rw$lr
     rrange <- rw$ur
     dt3 <- dt2[trace==tr & logsize>=lrange & logsize<=rrange]
@@ -803,7 +894,7 @@ for(i in 1:nrow(traceprops)) {
     pl <- ggplot(dt3,aes(logsize,h/r,color=type2,shape=type2))+
         geom_line(size=0.5)+
         geom_point(size=1.2)+
-    scale_color_manual("",values = c("#888888","#444444","#e7298a","#619d65","#d95f02"))+ #"#C50003","#7570b3","#66a61e",,"#e6ab02"
+    scale_color_manual("",values = c("#888888","#444444","#e7298a","#619d65","#d95f02","#C50003","#7570b3"))+ #"#C50003","#7570b3","#66a61e",,"#e6ab02"
     scale_shape_manual("",values=1:20)+
     scale_y_continuous("Object Hit Ratio",expand=c(0,0))+
     scale_x_continuous("Cache Size",expand=c(0,0),breaks=bbreaks,labels=blabels)+
@@ -822,40 +913,6 @@ for(i in 1:nrow(traceprops)) {
 }
 
 
-# missratio
-
-for(i in 1:nrow(traceprops)) {
-    rw <- traceprops[i]
-    tr <- traces2 <- gsub("100m","",rw$trace) ## check this for other traces
-    lrange <- rw$lr
-    rrange <- rw$ur
-    dt3 <- dt2[trace==tr & logsize>=lrange & logsize<=rrange]
-    if(nrow(dt3)==0) {
-        next
-    }
-    lx <- rw$mlx
-    ly <- rw$mly
-    maxh <- dt3[,max(1-h/r)]*1.02
-    pl <- ggplot(dt3,aes(logsize,1-h/r,color=type2,shape=type2))+
-        geom_line(size=0.5)+
-        geom_point(size=1.2)+
-    scale_color_manual("",values = c("#888888","#444444","#e7298a","#619d65","#d95f02"))+ #"#C50003","#7570b3","#66a61e",,"#e6ab02"
-    scale_shape_manual("",values=1:20)+
-    scale_y_continuous("Miss Ratio",expand=c(0,0))+
-    scale_x_continuous("Cache Size",expand=c(0,0),breaks=bbreaks,labels=blabels)+
-    theme(legend.key.width = unit(0.5, "cm"),
-          legend.key.height = unit(0.28, "cm"))+
-    theme(legend.position = c(lx,ly))+
-    theme(legend.text = element_text(size = rel(0.8)))+
-    theme(axis.title.x = element_text(size = rel(1.1),vjust=-.1),axis.title.y = element_text(size = rel(1.1),vjust=1.2))+
-        theme(legend.background = element_rect(fill="transparent"))+
-    coord_cartesian(xlim=c(lrange,rrange),ylim=c(0,maxh))
-#
-    oname <- paste("/tmp/plots/opt_foo_missratio_",tr,".pdf",sep="")
-    pdf(oname,3,2.6)
-    print(pl)
-    dev.off()
-}
 
 
 # abs error
