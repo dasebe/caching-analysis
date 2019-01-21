@@ -12,22 +12,24 @@ int main (int argc, char* argv[])
 
   // parameters
   if(argc != 3) {
+    cerr << "usage:\n" << argv[0] << " infile outfile\n";
     return 1;
   }
 
   const char* inputFile = argv[1];
   const char* outputMem = argv[2];
 
-  cout << "running..." << endl;
+  cerr << "starting ..." << endl;
 
   ifstream infile(inputFile);
   ofstream outfile(outputMem);
-  long id, size, t=0, simpleId=0;
-  unordered_map<long,long> dSimpleId;
+  int64_t size, t=0, simpleId=0;
+  string strid, urlpars, strtype;
+  unordered_map<string,uint64_t> dSimpleId;
+  unordered_map<string,size_t> typeId;
 
   const char row_delim = '\n';
   const char field_delim = '\t';
-  const char xcache_delim = ' ';
   string row;
 
   getline(infile, row, row_delim);
@@ -42,52 +44,50 @@ int main (int argc, char* argv[])
       cerr << "empty id " << row << endl;
       continue;
     }
-    stringstream fieldstream( field );
-    fieldstream >> id;
-    int i;
+    strid = field;
+    // url field
     field.clear();
-    for (i=2; i<=4; i++)
-      getline(ss, field, field_delim);
+    getline(ss, field, field_delim);
+    urlpars = field;
+    
+    // get type
+    field.clear();
+    getline(ss, field, field_delim);
+    if(field.empty()) {
+      cerr << "empty type (id=" << strid << ")\n" << row << endl;
+      continue;
+    }
+    strtype = field;
+    if(typeId.count(strtype)==0) {
+      // new type
+      typeId[strtype]=typeId.size();
+      cerr << t << " type " << strtype << " : " << typeId[strtype] << "\n";
+    }
 
     // get size
+    field.clear();
+    getline(ss, field, field_delim);
     if(field.empty()) {
       cerr << "empty size " << row << endl;
       continue;
     }
     stringstream fieldstream2( field );
     fieldstream2 >> size;
-    // get cache id
-    for (; i<=6; i++)
-      getline(ss, field, field_delim);
-    istringstream xcache(field);
-    for (int j=1; j<=7; j++) {
-      field.clear();
-      getline(xcache, field, xcache_delim);
-    }
 
-    if(field.empty()) {
-      //      cerr << "empty xcache " << row << endl;
-      continue;
-    }
+    // new id= origin_id + object_size + url_parameters
+    if(dSimpleId.count(strid+field+urlpars)==0)
+      dSimpleId[strid+field+urlpars]=simpleId++;
 
-    // match cp4006
-    if(field.compare("cp4006") != 0) {
-      continue;
-    }
-
-    //    cout << id << " " << size << endl;
+    // skip incomplete objects
     if (size <= 1)
       continue;
-	
-    if(dSimpleId.count(id)==0)
-      dSimpleId[id]=simpleId++;
-    t++;
-    outfile << t << " " << dSimpleId[id] << " " << size << endl;
-    
+
+    outfile << t << " " << dSimpleId[strid+field+urlpars] << " " << size << " " << typeId[strtype] << endl;
+    t++;    
   }
   infile.close();
 
-    cout << "rewrote " << t << " requests" << endl;
+  cerr << "rewrote " << t << " requests" << endl;
 
   return 0;
 }
