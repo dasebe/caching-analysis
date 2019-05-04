@@ -29,12 +29,12 @@ int main (int argc, char* argv[])
   infile.open(inputfile);
   random_device rd;
   mt19937 rnd_gen (rd ());
-  long tid, tsize;
+  int64_t tsize;
   long double trate;
   list<fi_pair_t> reqseq;
   vector<long> size;
   long i=0;
-  while(infile >> tid >> trate >> tsize) {
+  while(infile >> trate >> tsize) {
     size.push_back(tsize);
     exponential_distribution<> iaRandH (trate);
     long double globalTime = iaRandH(rnd_gen);
