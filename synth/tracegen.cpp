@@ -52,7 +52,7 @@ int main (int argc, char* argv[])
   cout << "finished sorting req.\n";
 
   ofstream outfile;
-  outfile.open(outputfile+"_trace.table");
+  outfile.open(outputfile);
   outfile<<fixed<<setprecision(0); // turn of scientific notation
 
   // output request sequence
