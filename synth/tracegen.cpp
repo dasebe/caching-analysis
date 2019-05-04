@@ -58,7 +58,7 @@ int main (int argc, char* argv[])
   // output request sequence
   list_iterator_t rit;
   for (rit=reqseq.begin(); rit != reqseq.end(); ++rit) {
-    outfile << 1000*get<0>(*rit) << " " << get<1>(*rit) << " " << size[get<1>(*rit)] << " " << get<2>(*rit) << "\n"; 
+    outfile << 1000*get<0>(*rit) << " " << get<1>(*rit) << " " << size[get<1>(*rit)] << "\n"; 
   }
 
   cout << "finished output.\n";
