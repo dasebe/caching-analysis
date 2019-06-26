@@ -10,8 +10,8 @@ int main (int argc, char* argv[])
 {
 
     // output help if insufficient params
-    if(argc < 4) {
-        cerr << "webcachesim inputFile outputFile sampleFactor" << endl;
+    if(argc != 4) {
+        cerr << argv[0] << " inputFile outputFile sampleFactor" << endl;
         return 1;
     }
 

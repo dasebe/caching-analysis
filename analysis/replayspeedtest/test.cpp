@@ -15,7 +15,7 @@ int main (int argc, char* argv[])
 
     // output help if insufficient params
     if(argc != 2) {
-        cerr << "test inputFile" << endl;
+        cerr << argv[0] << " inputFile" << endl;
         return 1;
     }
 
