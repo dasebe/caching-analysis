@@ -32,7 +32,8 @@ int main (int argc, char* argv[])
     for(int64_t i=0; i<traceLength; i++) {
         zr.Sample(id, size);
         cache_sim(id, size);
-        if(reqcount > 10000) {
+        reqcount++;
+        if(reqcount > 10000000) {
             auto t_end = std::chrono::high_resolution_clock::now();
             auto dur_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
             std::cout << reqcount / (dur_ms/1000.0) << "\n";
