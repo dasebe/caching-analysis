@@ -37,10 +37,10 @@ int main (int argc, char* argv[])
     {
         reqcount++;
         cache_sim(id, size);
-        if(reqcount > 100000) {
+        if(reqcount > 10000000) {
             auto t_end = std::chrono::high_resolution_clock::now();
             auto dur_ms = std::chrono::duration<double, std::milli>(t_end-t_start).count();
-            cout << reqcount << " " << dur_ms << "\n";
+            cout << reqcount / (dur_ms/1000.0) << "\n";
             reqcount = 0;
             t_start = std::chrono::high_resolution_clock::now();
         }
