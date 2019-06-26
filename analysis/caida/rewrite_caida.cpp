@@ -73,22 +73,22 @@ int main(int argc, char *argv[]) {
 
     // done with several csvs
     std::cout << std::setprecision(13);
-    std::cout << "prot,ipsrc,ipdst,portsrc,portdst,bytes,packets,start_time,flowdur_sec,flowdur_packets,syn,fin,vectorsize,vector\n";
-    const char* sep = "\t";
+    std::cout << "prot,ipsrc,ipdst,portsrc,portdst,bytes,packets,flowdur_sec,flowdur_packets,syn,fin\n";
+    const char* sep = ",";
     for(auto fl: flowid) {
-        if(fl.second.packet_count > 1000) {
+      //        if(fl.second.packet_count > 1000) {
             std::cout << fl.first
                       << sep << fl.second.total_bytes
                       << sep << fl.second.packet_count
-                      << sep << fl.second.first_time_seen
+	      //                      << sep << fl.second.first_time_seen
                       << sep << fl.second.last_time_seen - fl.second.first_time_seen
                       << sep << fl.second.last_seq - fl.second.first_seq
                       << sep << fl.second.had_syn
                       << sep << fl.second.fin_packets;
-            for(auto it: fl.second.ia_times_seq) {
-                std::cout << sep << it;
-            }
+            // for(auto it: fl.second.ia_times_seq) {
+            //     std::cout << sep << it;
+            // }
             std::cout << "\n";
-        }
+	    //        }
     }
 }
