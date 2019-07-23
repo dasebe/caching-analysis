@@ -1,44 +1,16 @@
 #include "lru_variants.h"
 
-/*
-  LRU: Least Recently Used eviction
-*/
-bool LRUCache::lookup(uint64_t req)
-{
-    auto it = _cacheMap.find(req);
-    if (it != _cacheMap.end()) {
-        hit(it);
-        return true;
-    }
-    return false;
-}
-
-void LRUCache::admit(uint64_t req)
-{
-    // check eviction needed
-    if (_cacheList.size() > _cacheSize) {
-        evict();
-    }
-    // admit new object
-    _cacheList.push_front(req);
-    _cacheMap[req] = _cacheList.begin();
-}
-
-void LRUCache::evict()
-{
-    // evict least popular (i.e. last element)
-    if (_cacheList.size() > 0 && _cacheMap.size() > 0) {
-        ListIteratorType lit = _cacheList.end();
-        lit--;
-        uint64_t cand = *lit;
-        _cacheMap.erase(cand);
-        _cacheList.erase(lit);
+int64_t LRUList::touch(string key) {
+    if (_objectNodeMap.count(key) == 0) {
+        // first access to this object
+        _objectNodeMap[key] = _lruTree.Insert(key);
+        return INT64_MAX;
+    } else {
+        // lookup node, get rank, and update position
+        auto node = _objectNodeMap[key];
+        int64_t rank = node->Rank();
+        _lruTree.Remove(node);
+        _lruTree.InsertNode(node);
+        return rank;
     }
 }
-
-void LRUCache::hit(lruCacheMapType::const_iterator it)
-{
-    // list splice syntax to transfer a single element
-    _cacheList.splice(_cacheList.begin(), _cacheList, it->second);
-}
-

@@ -1,34 +1,16 @@
 #include <unordered_map>
-#include <list>
+#include "ranktree/rank-tree.h"
 
-typedef std::list<uint64_t>::iterator ListIteratorType;
-typedef std::unordered_map<uint64_t, ListIteratorType> lruCacheMapType;
-
-/*
-  LRU: Least Recently Used eviction
-*/
-class LRUCache
+class LRUList
 {
 protected:
-    uint64_t _cacheSize;
-    // list for recency order
-    std::list<uint64_t> _cacheList;
-    // map to find objects in list
-    lruCacheMapType _cacheMap;
-
-    virtual void hit(lruCacheMapType::const_iterator it);
+    RankTree _lruTree;
+    unordered_map<string, RankTreeNode*> _objectNodeMap;
 
 public:
-    LRUCache(uint64_t size)
-        : _cacheSize(size)
+    LRUList()
     {
     }
-    virtual ~LRUCache()
-    {
-    }
-
-    virtual bool lookup(uint64_t req);
-    virtual void admit(uint64_t req);
-    virtual void evict();
+    int64_t touch(std::string key);
 };
 

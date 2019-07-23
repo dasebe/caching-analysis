@@ -1,7 +1,8 @@
 TARGET = dist
 OBJS += lru_variants.o
+OBJS += ranktree/rank-tree.o
 OBJS += dist.o
-LIBS += -lm
+#LIBS += -lm
 
 CXX = g++ #clang++ #OSX
 CXXFLAGS += -std=c++11 #-stdlib=libc++ #non-linux
