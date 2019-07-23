@@ -1,5 +1,7 @@
 #include <fstream>
 #include <iostream>
+#include <unordered_map>
+#include <map>
 #include "lru_variants.h"
 
 using namespace std;
@@ -19,6 +21,7 @@ int main (int argc, char* argv[])
 
   LRUList list;
   long long reqs = 0;
+  std::unordered_map<uint64_t, uint64_t> hist;
 
   cerr << "running..." << endl;
 
@@ -26,11 +29,19 @@ int main (int argc, char* argv[])
   while (infile >> t >> id >> size)
     {
         reqs++;
-
-        cout << list.touch(id) << "\n";
+        hist[list.touch(id)]++;
     }
 
   infile.close();
+
+  // hacky sort on hist
+  std::map<uint64_t, uint64_t> hist_sorted;
+  for(auto & it: hist) {
+      hist_sorted[it.first] = it.second;
+  }
+  for(auto & it: hist_sorted) {
+      cout << it.first << " " << it.second << "\n";
+  }
 
   return 0;
 }
