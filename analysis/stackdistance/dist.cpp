@@ -1,7 +1,5 @@
 #include <fstream>
 #include <iostream>
-#include <string>
-#include <regex>
 #include "lru_variants.h"
 
 using namespace std;
@@ -16,11 +14,11 @@ int main (int argc, char* argv[])
   }
   const char* path = argv[1];
 
-  LRUList list;
-
   ifstream infile;
-  long long reqs = 0;
   std::string t, id, size;
+
+  LRUList list;
+  long long reqs = 0;
 
   cerr << "running..." << endl;
 
