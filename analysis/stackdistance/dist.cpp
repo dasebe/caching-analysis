@@ -34,10 +34,10 @@ int main (int argc, char* argv[])
 
   infile.close();
 
-  // hacky sort on hist
+  // hacky bucketed and sorted hist
   std::map<uint64_t, uint64_t> hist_sorted;
   for(auto & it: hist) {
-      hist_sorted[it.first] = it.second;
+      hist_sorted[it.first % 1000] = it.second;
   }
   for(auto & it: hist_sorted) {
       cout << it.first << " " << it.second << "\n";
