@@ -9,58 +9,71 @@ using namespace std;
 int main (int argc, char* argv[])
 {
 
-    if(argc != 4) {
-        cerr << argv[0] << " inputFile sampleThresh reqCount" << endl;
+    if(argc < 4) {
+        cerr << argv[0] << " sampleThresh reqCount inputFile1 inputFile2 [..]" << endl;
         return 1;
     }
 
     cerr << "started\n";
 
     // trace properties
-    const char* inputFile = argv[1];
-    const uint64_t sampleThres  = std::stoull(argv[2]);
-    const uint64_t reqCount  = std::stoull(argv[3]);
+    const uint64_t sampleThres  = std::stoull(argv[1]);
+    const uint64_t reqCount  = std::stoull(argv[2]);
 
-    cerr << "parsed " << inputFile << " " << sampleThres << " " << reqCount/100 << " " << reqCount << "\n";
+    std::string inputFiles[argc-2];
+    for(int i=3; i<argc; i++) {
+        inputFiles[i-3] = argv[i];
+    }
 
-    ifstream infile(inputFile);
+    cerr << "parsed " << inputFiles[0] << " " << sampleThres << " " << reqCount/100 << " " << reqCount << "\n";
+
+    ifstream infiles[argc-2];
+    for(int i=3; i<argc; i++) {
+        infiles[i-3].open(inputFiles[i-3]);
+    }
 
     std::string f1, f2, f3, f4;
-    std::unordered_map<std::string, uint64_t> counts;
+    std::unordered_map<std::string, std::unordered_set<size_t> > occurence;
     uint64_t reqs = 0;
     
-    while (infile >> f1 >> f2 >> f3 >> f4)
-    {
-        reqs++;
-        counts[f2]++;
-        if(reqs>reqCount/100) {
-            break;
+    for(int i=3; i<argc; i++) {
+        while (infiles[i-3] >> f1 >> f2 >> f3 >> f4)
+        {
+            reqs++;
+            occurence[f2].insert(i-3);
+            // if(reqs>reqCount/100) {
+            //     break;
+            // }
         }
     }
 
-    infile.close();
-
-    cerr << "sampling\n";
-    std::unordered_set<std::string > sampled;
-    for(auto & it: counts) {
-        if(it.second>sampleThres) {
-            sampled.insert(it.first);
+    std::unordered_set<std::string> trackThese;
+    for(auto & it : occurence) {
+        if(it.second.size()>1) {
+            trackThese.insert(it.first);
+            //            cout << it.first << " " << it.second.size() << "\n";
         }
     }
-    cerr << "sampled\n";
 
-    infile.open(inputFile);
-    reqs = 0;
-    while (infile >> f1 >> f2 >> f3 >> f4)
-    {
-        reqs++;
-        if(sampled.count(f2)>0) {
-            cout << inputFile << " " << f1 << " " << f2 << "\n";
-        }
-        if(reqs>reqCount) {
-            break;
+    cerr << "size of trackThese " << trackThese.size() << "\n";
+
+    for(int i=3; i<argc; i++) {
+        infiles[i-3].close();
+        infiles[i-3].open(inputFiles[i-3]);
+    }
+
+    for(int i=3; i<argc; i++) {
+        while (infiles[i-3] >> f1 >> f2 >> f3 >> f4)
+        {
+            if(trackThese.count(f2)>0) {
+                cout << i-3 << " " << f1 << " " << f2 << "\n";
+            }
+            // if(reqs>reqCount) {
+            //     break;
+            // }
         }
     }
+
     cerr << "done\n";
 
     return 0;
