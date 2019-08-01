@@ -73,7 +73,8 @@ int main (int argc, char* argv[])
         << inputFile << " "
         << outputFile << "\n";
     
-    uint64_t newt=0, lastT=0, idcount = 0;
+    int64_t newt=0, lastT=0;
+    uint64_t idcount = 0;
     unordered_map<CacheObject, std::vector<int64_t> > newid;
     std::string id;
     int64_t t, size, tmp;
@@ -133,8 +134,12 @@ int main (int argc, char* argv[])
         if(lastT==0) {
             lastT = t;
         }
-        newt += (t-lastT);
-        lastT = t;
+        if(t>lastT) {
+            newt += (t-lastT);
+            lastT = t;
+        } else {
+            cerr << "time inconsistency " << lastT << " " << t << "\n";
+        }
         if(size>1073741824) {
             size_t ididx = 0;
             // larger than 1GB
