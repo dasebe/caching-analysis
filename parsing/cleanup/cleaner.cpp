@@ -108,7 +108,7 @@ int main (int argc, char* argv[])
         reqCounter++;
     }
 
-    std::cerr << inputFile << " reqs " << reqCounter << " large " << largeCounter << " fraction " << fractionCounter << "\n";
+    std::cerr << inputFile << " reqs " << reqCounter << " large " << largeCounter << " fraction " << fractionCounter << " zeros " << sizeZeroCounter << "\n";
     // reset file
     infile.clear();
     infile.seekg(0, ios::beg);
