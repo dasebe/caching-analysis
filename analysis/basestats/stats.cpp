@@ -1,7 +1,6 @@
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
-#include <vector>
 #include <map>
  
 using namespace std;
@@ -38,6 +37,36 @@ int main (int argc, char* argv[])
     uint64_t totalReqs = 0;
     int64_t lastPrint = 0;
 
+    // determine one-hit-wonders
+    while (infile >> t >> id >> size)
+    {
+        // parsing
+        for(uint64_t i=0; i<extraFields; i++) {
+            // read other fields
+            infile >> tmp;
+        }
+        totalReqs++;
+        totalobjs[id]++;
+    }
+    // sample 10 popular elements
+    unordered_map<string, string> sampledObjs;
+    for(auto & it: totalobjs) {
+        if(it.second > totalReqs/10000) {
+            const string idx = to_string(sampledObjs.size());
+            sampledObjs[it.first] = idx;
+        }
+        if(sampledObjs.size() >= 10) {
+            break;
+        }
+    }
+    std::cerr << inputFile << " first pass " << totalReqs << " " << totalobjs.size() << "\n";
+
+    // reset file
+    infile.clear();
+    infile.seekg(0, ios::beg);
+
+    // determine most popular objects overall, how many requests to each (decay rate)
+    // number of popular objects from previous window!!
     while (infile >> t >> id >> size)
     {
         // parsing
@@ -55,7 +84,6 @@ int main (int argc, char* argv[])
             lastPrint = t;
         }
         // stats
-        totalReqs++;
         intstats["RequestCount"]++;
         intstats["RequestedBytes"]+=size;
         // unique objs
@@ -64,7 +92,6 @@ int main (int argc, char* argv[])
             intstats["UniqueObjects"]++;
             intstats["UniqueBytes"]+=size;
         }
-        totalobjs[id]++;
         // osizes
         if(intstats["ObjectSize_Min"]==0) {
             intstats["ObjectSize_Min"] = size;
@@ -74,6 +101,17 @@ int main (int argc, char* argv[])
         }
         if(size>intstats["ObjectSize_Max"]) {
             intstats["ObjectSize_Max"] = size;
+        }
+        // one-hit wonders
+        if(totalobjs[id]==1) {
+            intstats["OneHitWonders"]++;
+        }
+        if(totalobjs[id]==2) {
+            intstats["TwoHitWonders"]++;
+        }
+        // popular objects
+        if(sampledObjs.count(id)>0) {
+            intstats["SampledObject"+sampledObjs[id]]++;
         }
     }
 
