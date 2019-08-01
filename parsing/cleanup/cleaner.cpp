@@ -114,6 +114,8 @@ int main (int argc, char* argv[])
     infile.clear();
     infile.seekg(0, ios::beg);
 
+    int thour = -1, twday = -1;
+
     while (infile >> t >> id >> size >> tmp)
     {
         if(size==0) {
@@ -122,23 +124,28 @@ int main (int argc, char* argv[])
         if(tmp==0) {
             tmp=size;
         }
-        // parse time stamp
-        time_t time(t);
-        struct tm *tmp2 = gmtime(&time);
-        auto thour = tmp2->tm_hour;
-        auto twday = tmp2->tm_wday;
-
         // create index
         CacheObject obj(id, size);
         // rewrite time
         if(lastT==0) {
             lastT = t;
+            // parse time stamp
+            time_t time(t);
+            struct tm *tmp2 = gmtime(&time);
+            thour = tmp2->tm_hour;
+            twday = tmp2->tm_wday;
         }
         if(t>lastT) {
             newt += (t-lastT);
             lastT = t;
+            // parse time stamp
+            time_t time(t);
+            struct tm *tmp2 = gmtime(&time);
+            thour = tmp2->tm_hour;
+            twday = tmp2->tm_wday;
         } else {
             cerr << "time inconsistency " << lastT << " " << t << "\n";
+            // reuse old thour and twday
         }
         if(size>1073741824) {
             size_t ididx = 0;
