@@ -41,7 +41,7 @@ void parseLine(ifstream * stream, traceLine & line) {
         } else {
             line.eof = false;
         }
-     }
+    }
 }
 
 
