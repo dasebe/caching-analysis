@@ -136,7 +136,7 @@ int main (int argc, char* argv[])
             twday = tmp2->tm_wday;
         }
         if(t>lastT) {
-            newt += (t-lastT);
+            newt = t;
             lastT = t;
             // parse time stamp
             time_t time(t);
