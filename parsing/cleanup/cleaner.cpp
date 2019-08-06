@@ -144,7 +144,6 @@ int main (int argc, char* argv[])
             thour = tmp2->tm_hour;
             twday = tmp2->tm_wday;
         } else {
-            cerr << "time inconsistency " << lastT << " " << t << "\n";
             // reuse old thour and twday
         }
         if(size>1073741824) {
