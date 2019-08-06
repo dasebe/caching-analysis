@@ -75,6 +75,9 @@ int main (int argc, char* argv[])
             infile >> tmp;
         }
         // check and print
+        if(lastPrint==0) {
+            lastPrint = t;
+        }
         if(t - lastPrint > interval) { // in seconds
             for(auto & it: intstats) {
                 outfile << inputFile << " " << t << " " << it.first << " " << it.second << "\n";
