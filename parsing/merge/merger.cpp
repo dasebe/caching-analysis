@@ -1,7 +1,8 @@
 #include <fstream>
 #include <iostream>
-//#include <unordered_map>
+#include <unordered_map>
 #include <vector>
+#include <string>
  
 using namespace std;
 
@@ -9,39 +10,48 @@ const size_t EXTRAFIELDS = 3;
 
 struct traceLine {
     int64_t ts;
-    string fields[EXTRAFIELDS+2];
-    int64_t newT;
+    uint64_t newId;
+    string fields[EXTRAFIELDS+1];
     bool eof;
 };
 // parser tmps
 string id;
 int64_t t;
-string extra[EXTRAFIELDS+2];
+string extra[EXTRAFIELDS+1];
+// rewrite id config
+unordered_map<string, uint64_t> oldToNewId;
+uint64_t nextNewId = 0;
 
-void parseLine(ifstream * stream, traceLine & line) {
+void parseLine(ifstream * stream, traceLine & line, size_t idx) {
     if(stream->good() && !stream->eof()) {
         // ok we can parse
-        ( (*stream) >> t);
-        cerr << "pp " << t;
-        for(size_t j=0; j<EXTRAFIELDS+2; j++) {
-            ( (*stream) >> extra[j]);
-            cerr << " " << extra[j];
-		
-        }
-        cerr << "\n";
+        ( (*stream) >> t >> id);
         // update current entry
-        line.newT += t - line.ts; // different between current and prev t
         line.ts = t;
-        for(size_t j=0; j<EXTRAFIELDS+2; j++) {
+        string idHash = id + ":" + to_string(idx);
+        if(oldToNewId.count(idHash)==0) {
+            oldToNewId[idHash] = nextNewId++;
+        }
+        line.newId = oldToNewId[idHash];
+        for(size_t j=0; j<EXTRAFIELDS+1; j++) {
+            ( (*stream) >> extra[j]);
             line.fields[j] = extra[j];
         }
+        // debug output
+        // cerr << "traceid " << idx << " oldt " << t << " oldid " << id << " newid " << line.newId;
+        // for(size_t j=0; j<EXTRAFIELDS+1; j++) {
+        //     cerr << " " << extra[j];
+		
+        // }
+        // cerr << "\n";
+
         // if eof, .. errors reduce count
         if(!stream->good() || stream->eof()) {
             line.eof = true;
         } else {
             line.eof = false;
         }
-     }
+    }
 }
 
 
@@ -59,6 +69,8 @@ int main (int argc, char* argv[])
 
     cerr << "started, parsed " << outputFile << "\n";
 
+    nextNewId = 0;
+
     vector<ifstream*> infiles;
     vector<traceLine> LastLines;
     for(int i=2; i<argc; i++) {
@@ -70,50 +82,73 @@ int main (int argc, char* argv[])
             return 1;
         }
         LastLines.push_back(traceLine());
-        LastLines[i-2].newT = 0;
     }
 
 
-    uint64_t reqs = 0;
+    //    uint64_t reqs = 0;
+    int64_t firstTime;
 
     // initial parse of files
-    for(int i=2; i<argc; i++) {
-        parseLine(infiles[i-2],LastLines[i-2]);
+    // i = 2
+    parseLine(infiles[2-2],LastLines[2-2],2-2);
+    firstTime = LastLines[2-2].ts;
+    // i = 3...
+    for(int i=3; i<argc; i++) {
+        parseLine(infiles[i-2],LastLines[i-2],i-2);
+        if(LastLines[2-2].ts < firstTime) {
+            firstTime = LastLines[2-2].ts; // save first and earliest timestamp
+        }
     }
 
     while (true)
     {
         // which file has earliest timestamp
-        int64_t nextTime = LastLines[0].ts;
+        int64_t nextTime;
         size_t nextIdx = 0;
         size_t activeTraces = 0;
-        for(int i=2; i<argc; i++) {
+        int i=2;
+        // find the first non-eof trace to initialize
+        for(; i<argc; i++) {
             if(LastLines[i-2].eof) {
                 continue;
-            } else {
-                activeTraces++;
             }
+            activeTraces++;
+            nextTime = LastLines[i-2].ts;
+            nextIdx = i-2;
+            //cerr << "first " << nextTime << " " << nextIdx << "\n";
+            break;
+        }
+        // find the lowest timestamp
+        for(; i<argc; i++) {
+            if(LastLines[i-2].eof) {
+                continue;
+            }
+            activeTraces++;
             if(LastLines[i-2].ts < nextTime) {
                 nextTime = LastLines[i-2].ts;
                 nextIdx = i-2;
             }
         }
+        //cerr << "lowest " << nextTime << " " << nextIdx << "\n";
         if(activeTraces==0) {
-            std::cerr << "no traces left\n";
+            //std::cerr << "no traces left\n";
             break;
         }
         // next output
-        outfile << LastLines[nextIdx].newT;
-        for(size_t j=0; j<EXTRAFIELDS+2; j++) {
+        outfile << LastLines[nextIdx].ts - firstTime; //normalize to first time stamp
+        outfile << " " << LastLines[nextIdx].newId;
+        for(size_t j=0; j<EXTRAFIELDS+1; j++) {
+            cerr << "nextIdx " << nextIdx << " outj " << j << " f " << LastLines[nextIdx].fields[j] << "\n";
             outfile << " " << LastLines[nextIdx].fields[j];
         }
+        outfile << " " << nextIdx; // newfeature
         outfile << "\n";
         // parse outputted file
-        parseLine(infiles[nextIdx],LastLines[nextIdx]);
+        parseLine(infiles[nextIdx],LastLines[nextIdx],nextIdx);
 
-        if(reqs++>10) {
-            break;
-        }
+        // if(reqs++>100) {
+        //     break;
+        // }
     }
 
     cerr << "finishing up" << "\n";

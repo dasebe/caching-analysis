@@ -128,6 +128,7 @@ int main (int argc, char* argv[])
         CacheObject obj(id, size);
         // rewrite time
         if(lastT==0) {
+	    newt = t;
             lastT = t;
             // parse time stamp
             time_t time(t);
