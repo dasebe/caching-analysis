@@ -51,11 +51,11 @@ int main (int argc, char* argv[])
     // sample 10 popular elements
     unordered_map<string, string> sampledObjs;
     for(auto & it: totalobjs) {
-        if(it.second > totalReqs/10000) {
+        if(it.second > totalReqs/1000) {
             const string idx = to_string(sampledObjs.size());
             sampledObjs[it.first] = idx;
         }
-        if(sampledObjs.size() >= 10) {
+        if(sampledObjs.size() >= 100) {
             break;
         }
     }
