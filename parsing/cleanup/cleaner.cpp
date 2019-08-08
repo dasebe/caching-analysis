@@ -57,14 +57,15 @@ int main (int argc, char* argv[])
 {
 
     // output help if insufficient params
-    if(argc != 3) {
-        cerr << argv[0] << " inputFile outputFile" << endl;
+    if(argc != 4) {
+        cerr << argv[0] << " inputFile outputFile leaveTs" << endl;
         return 1;
     }
 
     // trace properties
     const char* inputFile = argv[1];
     const char* outputFile = argv[2];
+    const int leaveTs = stoi(argv[3]);
 
     ifstream infile(inputFile);
     ofstream outfile(outputFile);
@@ -128,7 +129,12 @@ int main (int argc, char* argv[])
         CacheObject obj(id, size);
         // rewrite time
         if(lastT==0) {
-	    newt = t;
+            if(leaveTs==0) {
+                // leave original timestamp
+                newt = t;
+            } else {
+                newt = 0;
+            }
             lastT = t;
             // parse time stamp
             time_t time(t);
@@ -137,7 +143,12 @@ int main (int argc, char* argv[])
             twday = tmp2->tm_wday;
         }
         if(t>lastT) {
-            newt = t;
+            if(leaveTs==0) {
+                // leave original timestamp
+                newt = t;
+            } else {
+                newt += (t-lastT);
+            }
             lastT = t;
             // parse time stamp
             time_t time(t);
