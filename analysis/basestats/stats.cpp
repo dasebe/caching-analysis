@@ -30,6 +30,7 @@ int main (int argc, char* argv[])
     map<string, uint64_t> intstats;
     unordered_map<string, uint64_t > intobjs;
     unordered_map<string, uint64_t > totalobjs;
+    unordered_map<string, uint64_t > lastAccess;
 
     std::string id;
     int64_t t, tmp;
@@ -89,11 +90,11 @@ int main (int argc, char* argv[])
         // stats
         intstats["RequestCount"]++;
         intstats["RequestedBytes"]+=size;
-        // unique objs
+        // unique objs in this interval
         if(intobjs.count(id)==0) {
             intobjs[id] = 1;
-            intstats["UniqueObjects"]++;
-            intstats["UniqueBytes"]+=size;
+            intstats["UniqueHourlyObjects"]++;
+            intstats["UniqueHourlyBytes"]+=size;
         }
         // osizes
         if(intstats["ObjectSize_Min"]==0) {
@@ -112,11 +113,30 @@ int main (int argc, char* argv[])
         if(totalobjs[id]==2) {
             intstats["TwoHitWonders"]++;
         }
+        // rough reuse distances
+        if(lastAccess.count(id) == 0) {
+            // first access
+            intstats["RD-Inf"]++;
+            lastAccess[id] = t;
+        } else {
+            if ( (t-lastAccess[id]) < 60 ) {
+                intstats["RD-Minute"]++;
+            } else if ( (t-lastAccess[id]) < 60*60 ) {
+                intstats["RD-Hour"]++;
+            } else if ( (t-lastAccess[id]) < 60*60*24 ) {
+                intstats["RD-Day"]++;
+            } else if ( (t-lastAccess[id]) < 60*60*24*2 ) {
+                intstats["RD-2Days"]++;
+            } else {
+                intstats["RD-G2Days"]++;
+            }
+        }
         // popular objects
         if(sampledObjs.count(id)>0) {
             intstats["SampledObject"+sampledObjs[id]]++;
         }
     }
+    outfile << inputFile << " " << 0 << " " << "UniqueObjects" << " " << totalobjs.size() << "\n";
 
     infile.close();
     outfile.close();
