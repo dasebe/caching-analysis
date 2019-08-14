@@ -92,12 +92,14 @@ int main (int argc, char* argv[])
     // i = 2
     parseLine(infiles[2-2],LastLines[2-2],2-2);
     firstTime = LastLines[2-2].ts;
+    cerr << "fT " << firstTime << "\n";
     // i = 3...
     for(int i=3; i<argc; i++) {
         parseLine(infiles[i-2],LastLines[i-2],i-2);
-        if(LastLines[2-2].ts < firstTime) {
-            firstTime = LastLines[2-2].ts; // save first and earliest timestamp
+        if(LastLines[i-2].ts < firstTime) {
+            firstTime = LastLines[i-2].ts; // save first and earliest timestamp
         }
+        cerr << "fT " << firstTime << " " << i << " " << LastLines[i-2].ts << "\n";
     }
 
     while (true)
@@ -138,7 +140,7 @@ int main (int argc, char* argv[])
         outfile << LastLines[nextIdx].ts - firstTime; //normalize to first time stamp
         outfile << " " << LastLines[nextIdx].newId;
         for(size_t j=0; j<EXTRAFIELDS+1; j++) {
-            cerr << "nextIdx " << nextIdx << " outj " << j << " f " << LastLines[nextIdx].fields[j] << "\n";
+            // cerr << "nextIdx " << nextIdx << " outj " << j << " f " << LastLines[nextIdx].fields[j] << "\n";
             outfile << " " << LastLines[nextIdx].fields[j];
         }
         outfile << " " << nextIdx; // newfeature
