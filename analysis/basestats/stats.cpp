@@ -29,10 +29,9 @@ int main (int argc, char* argv[])
     
     map<string, uint64_t> intstats;
     unordered_map<string, uint64_t > intobjs;
-    unordered_map<string, uint64_t > totalobjs;
-    unordered_map<string, uint64_t > lastAccess;
+    unordered_map<string, uint32_t > globalObjs;
 
-    std::string id;
+    string id;
     int64_t t, tmp;
     uint64_t size;
     uint64_t totalReqs = 0;
@@ -47,12 +46,14 @@ int main (int argc, char* argv[])
             infile >> tmp;
         }
         totalReqs++;
-        totalobjs[id]++;
+        if(globalObjs[id] < 1000002) {
+            globalObjs[id]++;
+        }
     }
     // sample 10 popular elements
     unordered_map<string, string> sampledObjs;
-    for(auto & it: totalobjs) {
-        if(it.second > totalReqs/1000) {
+    for(auto & it: globalObjs) {
+        if(it.second > 1000000) {
             const string idx = to_string(sampledObjs.size());
             sampledObjs[it.first] = idx;
         }
@@ -60,7 +61,8 @@ int main (int argc, char* argv[])
             break;
         }
     }
-    std::cerr << inputFile << " first pass " << totalReqs << " " << totalobjs.size() << "\n";
+    std::cerr << inputFile << " first pass " << totalReqs << " " << globalObjs.size() << "\n";
+    globalObjs.clear();
 
     // reset file
     infile.clear();
@@ -106,26 +108,20 @@ int main (int argc, char* argv[])
         if(size>intstats["ObjectSize_Max"]) {
             intstats["ObjectSize_Max"] = size;
         }
-        // one-hit wonders
-        if(totalobjs[id]==1) {
-            intstats["OneHitWonders"]++;
-        }
-        if(totalobjs[id]==2) {
-            intstats["TwoHitWonders"]++;
-        }
         // rough reuse distances
-        if(lastAccess.count(id) == 0) {
+        if(globalObjs.count(id) == 0) {
             // first access
             intstats["RD-Inf"]++;
-            lastAccess[id] = t;
+            intstats["OneHitWonders"]++;
+            globalObjs[id] = t;
         } else {
-            if ( (t-lastAccess[id]) < 60 ) {
+            if ( (t-globalObjs[id]) < 60 ) {
                 intstats["RD-Minute"]++;
-            } else if ( (t-lastAccess[id]) < 60*60 ) {
+            } else if ( (t-globalObjs[id]) < 60*60 ) {
                 intstats["RD-Hour"]++;
-            } else if ( (t-lastAccess[id]) < 60*60*24 ) {
+            } else if ( (t-globalObjs[id]) < 60*60*24 ) {
                 intstats["RD-Day"]++;
-            } else if ( (t-lastAccess[id]) < 60*60*24*2 ) {
+            } else if ( (t-globalObjs[id]) < 60*60*24*2 ) {
                 intstats["RD-2Days"]++;
             } else {
                 intstats["RD-G2Days"]++;
@@ -136,7 +132,7 @@ int main (int argc, char* argv[])
             intstats["SampledObject"+sampledObjs[id]]++;
         }
     }
-    outfile << inputFile << " " << 0 << " " << "UniqueObjects" << " " << totalobjs.size() << "\n";
+    outfile << inputFile << " " << 0 << " " << "UniqueObjects" << " " << globalObjs.size() << "\n";
 
     infile.close();
     outfile.close();
