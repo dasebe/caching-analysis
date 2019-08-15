@@ -35,7 +35,6 @@ int main (int argc, char* argv[])
     int64_t t, tmp;
     uint64_t size;
     uint64_t totalReqs = 0;
-    int64_t lastPrint = 0;
 
     // determine one-hit-wonders
     while (infile >> t >> id >> size)
@@ -67,9 +66,15 @@ int main (int argc, char* argv[])
     // reset file
     infile.clear();
     infile.seekg(0, ios::beg);
+    // Zhenyu: not assume t start from any constant, so need to compute the first window
+    infile>>t;
+    int64_t timeWindowEnd = interval * (t/interval + (t%interval != 0));
+    infile.clear();
+    infile.seekg(0, ios::beg);
 
     // determine most popular objects overall, how many requests to each (decay rate)
     // number of popular objects from previous window!!
+    // Zhenyu: stats are collected every window, where the first window is from [0, interval), and second is [interval, 2*interval)
     while (infile >> t >> id >> size)
     {
         // parsing
@@ -77,17 +82,13 @@ int main (int argc, char* argv[])
             // read other fields
             infile >> tmp;
         }
-        // check and print
-        if(lastPrint==0) {
-            lastPrint = t;
-        }
-        if(t - lastPrint > interval) { // in seconds
+        while (t >= timeWindowEnd) { // in seconds
             for(auto & it: intstats) {
-                outfile << inputFile << " " << t << " " << it.first << " " << it.second << "\n";
+                outfile << inputFile << " " << timeWindowEnd << " " << it.first << " " << it.second << "\n";
                 it.second = 0;
             }
             intobjs.clear();
-            lastPrint = t;
+            timeWindowEnd += interval;
         }
         // stats
         intstats["RequestCount"]++;
@@ -132,6 +133,14 @@ int main (int argc, char* argv[])
             intstats["SampledObject"+sampledObjs[id]]++;
         }
     }
+
+    {
+        //partial segment
+        for(auto & it: intstats) {
+            outfile << inputFile << " " << timeWindowEnd << " " << it.first << " " << it.second << "\n";
+        }
+    }
+
     outfile << inputFile << " " << 0 << " " << "UniqueObjects" << " " << globalObjs.size() << "\n";
 
     infile.close();
