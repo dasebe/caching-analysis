@@ -98,6 +98,12 @@ int main (int argc, char* argv[])
             intobjs[id] = 1;
             intstats["UniqueHourlyObjects"]++;
             intstats["UniqueHourlyBytes"]+=size;
+            //assume one hit wonders
+            ++intstats["SegmentOneHitWonders"];
+        } else if (intobjs.find(id)->second == 1) {
+            //remove from one hit wonders
+            intobjs[id] += 1;
+            --intstats["SegmentOneHitWonders"];
         }
         // osizes
         if(intstats["ObjectSize_Min"]==0) {
