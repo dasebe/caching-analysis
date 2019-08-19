@@ -16,6 +16,18 @@ dt <- foreach(fn=files,.combine=rbind, .errorhandling="remove") %do%
 dt[,tr:=gsub(".*/data/","",V1)]
 dt[,V1:=NULL]
 
+dt[,unique(V3)]
+
+dt[V3=="RequestedBytes",sum(V4),by=tr]
+dt[V3=="UniqueObjects"]
+dt[V3=="RequestCount",sum(V4),by=tr]
+
+
+
+
+
+
+
 dt[V3=="OneHitWonders",min(V4),by=tr]
 dt[V3=="OneHitWonders",sum(V4),by=tr]
 dt[V3=="OneHitWonders",max(V4),by=tr]
@@ -23,12 +35,6 @@ dt[V3=="OneHitWonders",max(V4),by=tr]
 dt[V3=="ObjectSize_Min",min(V4)]
 dt[V3=="UniqueBytes",sum(V4)]/dt[V3=="UniqueObjects",sum(V4)]
 dt[V3=="ObjectSize_Max",max(V4)]
-
-
-dt[,unique(V3)]
-
-
-dt[V3=="RequestCount"]
 
 
 
