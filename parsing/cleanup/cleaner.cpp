@@ -57,15 +57,16 @@ int main (int argc, char* argv[])
 {
 
     // output help if insufficient params
-    if(argc != 4) {
-        cerr << argv[0] << " inputFile outputFile leaveTs" << endl;
+    if(argc != 5) {
+        cerr << argv[0] << " inputFile outputFile extraFields replaceTimeStamp" << endl;
         return 1;
     }
 
     // trace properties
     const char* inputFile = argv[1];
     const char* outputFile = argv[2];
-    const int leaveTs = stoi(argv[3]);
+    const int extraFields = stoi(argv[3]);
+    const int replaceTimeStamp = stoi(argv[4]);
 
     ifstream infile(inputFile);
     ofstream outfile(outputFile);
@@ -80,8 +81,11 @@ int main (int argc, char* argv[])
     std::string id;
     int64_t t, size, tmp;
     int64_t largeCounter = 0, fractionCounter = 0, reqCounter = 0, sizeZeroCounter = 0;
-    while (infile >> t >> id >> size >> tmp)
+    while (infile >> t >> id >> size)
     {
+        for(int i=0; i<extraFields; i++) {
+            infile >> tmp;
+        }
         if(size==0) {
             sizeZeroCounter++;
             continue;
@@ -115,10 +119,13 @@ int main (int argc, char* argv[])
     infile.clear();
     infile.seekg(0, ios::beg);
 
-    int thour = -1, twday = -1;
+    //    int thour = -1, twday = -1;
 
-    while (infile >> t >> id >> size >> tmp)
+    while (infile >> t >> id >> size)
     {
+        for(int i=0; i<extraFields; i++) {
+            infile >> tmp;
+        }
         if(size==0) {
             continue;
         }
@@ -129,7 +136,7 @@ int main (int argc, char* argv[])
         CacheObject obj(id, size);
         // rewrite time
         if(lastT==0) {
-            if(leaveTs==0) {
+            if(replaceTimeStamp==0) {
                 // leave original timestamp
                 newt = t;
             } else {
@@ -137,13 +144,13 @@ int main (int argc, char* argv[])
             }
             lastT = t;
             // parse time stamp
-            time_t time(t);
-            struct tm *tmp2 = gmtime(&time);
-            thour = tmp2->tm_hour;
-            twday = tmp2->tm_wday;
+            // time_t time(t);
+            // struct tm *tmp2 = gmtime(&time);
+            // thour = tmp2->tm_hour;
+            // twday = tmp2->tm_wday;
         }
         if(t>lastT) {
-            if(leaveTs==0) {
+            if(replaceTimeStamp==0) {
                 // leave original timestamp
                 newt = t;
             } else {
@@ -151,10 +158,10 @@ int main (int argc, char* argv[])
             }
             lastT = t;
             // parse time stamp
-            time_t time(t);
-            struct tm *tmp2 = gmtime(&time);
-            thour = tmp2->tm_hour;
-            twday = tmp2->tm_wday;
+            // time_t time(t);
+            // struct tm *tmp2 = gmtime(&time);
+            // thour = tmp2->tm_hour;
+            // twday = tmp2->tm_wday;
         } else {
             // reuse old thour and twday
         }
@@ -162,17 +169,29 @@ int main (int argc, char* argv[])
             size_t ididx = 0;
             // larger than 1GB
             while(size>1073741824) {
-                outfile << newt << " " << (newid[obj])[ididx] << " " << 1073741824 << " " << 1073741824/65536 << " " << thour << " " << twday << "\n";
+                if(extraFields == 0) {
+                    outfile << newt << " " << (newid[obj])[ididx] << " " << 1073741824 << "\n";
+                } else {
+                    outfile << newt << " " << (newid[obj])[ididx] << " " << 1073741824 << " " << 1073741824/65536 << "\n";
+                }
                 ididx++;
                 size -= 1073741824;
                 if(tmp>1073741824) {
                     tmp -= 1073741824;
                 }
             }
-            outfile << newt << " " << (newid[obj])[ididx] << " " << size << " " << tmp/65536 << " " << thour << " " << twday << "\n";
+            if(extraFields == 0) {
+                outfile << newt << " " << (newid[obj])[ididx] << " " << size << "\n";
+            } else {
+                outfile << newt << " " << (newid[obj])[ididx] << " " << size << " " << tmp/65536 << "\n";
+            }
             //            std::cerr << "lf " << newt << " " << (newid[obj])[ididx] << "\n";
         } else {
-            outfile << newt << " " << (newid[obj])[0] << " " << size << " " << tmp/65536 << " " << thour << " " << twday << "\n";
+            if(extraFields == 0) {
+                outfile << newt << " " << (newid[obj])[0] << " " << size << "\n";
+            } else {
+                outfile << newt << " " << (newid[obj])[0] << " " << size << " " << tmp/65536 << "\n";
+            }
         }
     }
 
