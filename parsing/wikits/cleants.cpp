@@ -45,7 +45,7 @@ int main (int argc, char* argv[])
                 reqcount_old = reqcount;
                 tsFile >> ts >> tmp1 >> tmp2 >> reqcount; // next line
                 time_delta = ts - ts_old;
-                time_increment = time_delta / reqcount_old;
+                time_increment = time_delta / double(reqcount_old);
                 cerr << discard << " rate " << reqcount / time_delta << " time_increment " << time_increment << "\n";
             }
             // if not good, just keep incrementing with last known rate
