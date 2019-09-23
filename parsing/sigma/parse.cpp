@@ -39,77 +39,88 @@ unordered_map<string, uint64_t > readids;
 int64_t prev_ts = -1;
 uint64_t reqs=0;
 
-int main () {
+int main (int args, char *argv[]) {
     Req CurReq;
 
-    std::fstream fh;
-    fh.open("trace.aaaaa", std::fstream::in | std::fstream::binary);
 
-    // get distributions of IA-time, etc.
+    for(int ag=1; ag<args; ag++) {
+        cerr << argv[ag] << "\n";
 
-    while(!fh.eof() && !fh.fail() && !fh.bad()) {
-        fh.read(reinterpret_cast<char*>(&CurReq), sizeof(CurReq));
-        // recall: endianness
-        if(prev_ts!=-1) {
-            endswap(&CurReq.ts);
-            int64_t logDiff;
-            if(CurReq.ts==prev_ts) {
-                logDiff = 0;
-            } else {
-                logDiff = log10(CurReq.ts-prev_ts);
+        std::fstream fh;
+        fh.open(argv[ag], std::fstream::in | std::fstream::binary);
+
+        // get distributions of IA-time, etc.
+
+        while(!fh.eof() && !fh.fail() && !fh.bad()) {
+            fh.read(reinterpret_cast<char*>(&CurReq), sizeof(CurReq));
+            // recall: endianness
+            if(prev_ts!=-1) {
+                endswap(&CurReq.ts);
+                int64_t logDiff;
+                if(CurReq.ts==prev_ts) {
+                    logDiff = 0;
+                } else {
+                    logDiff = log10(CurReq.ts-prev_ts);
+                }
+                dist("ia",logDiff);
             }
-            dist("ia",logDiff);
-        }
-        prev_ts=CurReq.ts;
+            prev_ts=CurReq.ts;
         
-        endswap(&CurReq.client_machine);
-        dist("cm",CurReq.client_machine);
+            endswap(&CurReq.client_machine);
+            dist("cm",CurReq.client_machine);
 
-        endswap(&CurReq.rack);
-        dist("rack",CurReq.rack);
+            endswap(&CurReq.rack);
+            dist("rack",CurReq.rack);
 
-        endswap(&CurReq.oid);
-        dist("oid",CurReq.oid);
+            endswap(&CurReq.oid);
+            dist("oid",CurReq.oid);
 
-        endswap(&CurReq.readid1);
-        endswap(&CurReq.readid2);
-        readids[to_string(CurReq.readid1)+to_string(CurReq.readid2)]++;
+            endswap(&CurReq.readid1);
+            endswap(&CurReq.readid2);
+            readids[to_string(CurReq.readid1)+to_string(CurReq.readid2)]++;
 
-        endswap(&CurReq.offset);
-        int64_t logOff = log2(CurReq.offset);
-        dist("offset",logOff);
+            endswap(&CurReq.offset);
+            int64_t logOff = log2(CurReq.offset);
+            dist("offset",logOff);
 
-        endswap(&CurReq.length);
-        int64_t logLen = log2(CurReq.length);
-        dist("length",logLen);
+            endswap(&CurReq.length);
+            int64_t logLen = log2(CurReq.length);
+            dist("length",logLen);
 
-        endswap(&CurReq.jobid);
-        dist("jobid",CurReq.jobid);
+            endswap(&CurReq.jobid);
+            dist("jobid",CurReq.jobid);
 
-        reqs++;
-        if(reqs % 10000000 == 0) {
-            cerr << reqs << " " << CurReq.ts << " " << CurReq.oid << " " << CurReq.jobid << "\n";
+            reqs++;
+            if(reqs % 10000000 == 0) {
+                cerr << reqs << " " << CurReq.ts << " " << CurReq.oid << " " << CurReq.jobid << "\n";
+            }
         }
-    }
-    fh.close();
+        fh.close();
 
-    map<uint64_t, uint64_t> counts;
-    for(auto & nd: dists) {
+        map<uint64_t, uint64_t> counts;
+        for(auto & nd: dists) {
+            if(nd.first == "ia" || nd.first == "offset" || nd.first == "length") {
+                for(auto & val: nd.second) {
+                    cout << argv[ag] << " " << nd.first << " " << val.first << " " << val.second << "\n";
+                }
+            } else {
+                counts.clear();
+                for(auto & val: nd.second) {
+                    counts[val.second]++;
+                }
+                for(auto & val: counts) {
+                    cout << argv[ag] << " " << nd.first << " " << val.first << " " << val.second << "\n";
+                }
+            }
+        }
         counts.clear();
-        for(auto & val: nd.second) {
+        for(auto & val: readids) {
             counts[val.second]++;
         }
         for(auto & val: counts) {
-            cout << nd.first << " " << val.first << " " << val.second << "\n";
+            cout << argv[ag] << " " << "readid" << " " << val.first << " " << val.second << "\n";
         }
-    }
-    counts.clear();
-    for(auto & val: readids) {
-        counts[val.second]++;
-    }
-    for(auto & val: counts) {
-        cout << "readid" << " " << val.first << " " << val.second << "\n";
-    }
 
+    }
     return 0;
-}
+    }
