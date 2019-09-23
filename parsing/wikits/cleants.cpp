@@ -31,7 +31,7 @@ int main (int argc, char* argv[])
     double time = 0;
     double time_increment = time_delta / double(reqcount_old) ;
     int64_t reqs_since_last_row = 0;
-    cerr << "0 rate " << reqcount / time_delta << " time_increment " << time_increment << "\n";
+    cerr << "0 rate " << reqcount_old / time_delta << " time_increment " << time_increment << "\n";
     // trace file parsing
     int64_t discard, id, size, appid;
     while (trFile >> discard >> id >> size >> appid) {
@@ -39,16 +39,16 @@ int main (int argc, char* argv[])
         time+=time_increment;
         reqs_since_last_row++;
         if(reqs_since_last_row >= reqcount_old) {
+            // move forward in ts file
+            ts_old = ts;
+            reqcount_old = reqcount;
+            tsFile >> ts >> tmp1 >> tmp2 >> reqcount; // next line
             if(tsFile.good()) {
-                // move forward in ts file
-                ts_old = ts;
-                reqcount_old = reqcount;
-                tsFile >> ts >> tmp1 >> tmp2 >> reqcount; // next line
+                // only update time delta, if actually successfully read line
                 time_delta = ts - ts_old;
-                time_increment = time_delta / double(reqcount_old);
-                cerr << discard << " rate " << reqcount / time_delta << " time_increment " << time_increment << "\n";
             }
-            // if not good, just keep incrementing with last known rate
+            time_increment = time_delta / double(reqcount_old);
+            cerr << discard << " rate " << reqcount_old / time_delta << " time_increment " << time_increment << "\n";
             reqs_since_last_row = 0;
         }
     }
