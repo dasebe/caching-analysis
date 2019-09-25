@@ -44,7 +44,7 @@ int main (int args, char *argv[]) {
 
 
     for(int ag=1; ag<args; ag++) {
-        cerr << argv[ag] << "\n";
+        //        cerr << argv[ag] << "\n";
 
         std::fstream fh;
         fh.open(argv[ag], std::fstream::in | std::fstream::binary);
@@ -54,13 +54,13 @@ int main (int args, char *argv[]) {
         while(!fh.eof() && !fh.fail() && !fh.bad()) {
             fh.read(reinterpret_cast<char*>(&CurReq), sizeof(CurReq));
             // recall: endianness
+            endswap(&CurReq.ts);
             if(prev_ts!=-1) {
-                endswap(&CurReq.ts);
                 int64_t logDiff;
                 if(CurReq.ts==prev_ts) {
                     logDiff = 0;
                 } else {
-                    logDiff = log10(CurReq.ts-prev_ts);
+                    logDiff = log10(100.0*(CurReq.ts-prev_ts));
                 }
                 dist("ia",logDiff);
             }
@@ -91,9 +91,9 @@ int main (int args, char *argv[]) {
             dist("jobid",CurReq.jobid);
 
             reqs++;
-            if(reqs % 10000000 == 0) {
-                cerr << reqs << " " << CurReq.ts << " " << CurReq.oid << " " << CurReq.jobid << "\n";
-            }
+            // if(reqs % 10000000 == 0) {
+            //     cerr << reqs << " " << CurReq.ts << " " << CurReq.oid << " " << CurReq.jobid << "\n";
+            // }
         }
         fh.close();
 
@@ -121,6 +121,7 @@ int main (int args, char *argv[]) {
             cout << argv[ag] << " " << "readid" << " " << val.first << " " << val.second << "\n";
         }
 
+        cout << argv[ag] << " reqs " << reqs << " " << reqs << "\n";
     }
     return 0;
     }
