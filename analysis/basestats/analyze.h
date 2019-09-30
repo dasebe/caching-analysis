@@ -5,7 +5,7 @@
 
 class Analysis {
 protected:
-    std::unordered_map<std::string, uint64_t > counters;
+    std::unordered_map<std::string, int64_t > counters;
     std::unordered_set<std::string> objids;
 
 public:
@@ -17,6 +17,9 @@ public:
                 counters["UniqueObjs"]++;
                 counters["UniqueBytes"]+=req.size;
                 objids.insert(req.oid);
+            }
+            if(req.size > counters["MaxObjSize"]) {
+                counters["MaxObjSize"] = req.size;
             }
         }
     }
