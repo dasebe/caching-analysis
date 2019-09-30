@@ -79,9 +79,12 @@ int main (int argc, char* argv[])
     uint64_t idcount = 0;
     unordered_map<CacheObject, std::vector<int64_t> > newid;
     std::string id;
-    int64_t t, size, tmp;
+    int64_t t, size, appid, tmp;
     int64_t largeCounter = 0, fractionCounter = 0, reqCounter = 0, sizeZeroCounter = 0;
-    while (infile >> t >> id >> size)
+
+    uint64_t printCounter = 0;
+
+    while (infile >> t >> id >> appid >> size)
     {
         for(int i=0; i<extraFields; i++) {
             infile >> tmp;
@@ -112,7 +115,13 @@ int main (int argc, char* argv[])
             fractionCounter++;
         }
         reqCounter++;
+        if(printCounter++ > 1000000) {
+            std::cerr << t << " " << reqCounter << " " << size << "\n";
+            printCounter=0;
+        }
     }
+
+    std::cerr << t << " " << reqCounter << " " << size << "\n";
 
     std::cerr << inputFile << " reqs " << reqCounter << " large " << largeCounter << " fraction " << fractionCounter << " zeros " << sizeZeroCounter << "\n";
     // reset file
@@ -121,7 +130,7 @@ int main (int argc, char* argv[])
 
     //    int thour = -1, twday = -1;
 
-    while (infile >> t >> id >> size)
+    while (infile >> t >> id >> appid >> size)
     {
         for(int i=0; i<extraFields; i++) {
             infile >> tmp;
@@ -172,7 +181,7 @@ int main (int argc, char* argv[])
                 if(extraFields == 0) {
                     outfile << newt << " " << (newid[obj])[ididx] << " " << 1073741824 << "\n";
                 } else {
-                    outfile << newt << " " << (newid[obj])[ididx] << " " << 1073741824 << " " << 1073741824/65536 << "\n";
+                    outfile << newt << " " << (newid[obj])[ididx] << " " << 1073741824 << " " << appid << "\n";
                 }
                 ididx++;
                 size -= 1073741824;
@@ -183,14 +192,14 @@ int main (int argc, char* argv[])
             if(extraFields == 0) {
                 outfile << newt << " " << (newid[obj])[ididx] << " " << size << "\n";
             } else {
-                outfile << newt << " " << (newid[obj])[ididx] << " " << size << " " << tmp/65536 << "\n";
+                outfile << newt << " " << (newid[obj])[ididx] << " " << size << " " << appid << "\n";
             }
             //            std::cerr << "lf " << newt << " " << (newid[obj])[ididx] << "\n";
         } else {
             if(extraFields == 0) {
                 outfile << newt << " " << (newid[obj])[0] << " " << size << "\n";
             } else {
-                outfile << newt << " " << (newid[obj])[0] << " " << size << " " << tmp/65536 << "\n";
+                outfile << newt << " " << (newid[obj])[0] << " " << size << " " << appid << "\n";
             }
         }
     }
