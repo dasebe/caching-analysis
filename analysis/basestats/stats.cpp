@@ -5,6 +5,7 @@
 #include "parse_ssv.h"
 #include "parse_sbin.h"
 #include "parse_tsv.h"
+#include "parse_csv.h"
 
 using namespace std;
 
@@ -27,14 +28,14 @@ int main (int argc, char* argv[])
 
     Analysis a;
 
-    int i=3;
+    //    int i=3;
 
     while(p->parseBatch(1000000)){
         std::cerr << ".";
         a.processBatch(p->getBatch());
-        if(i--==0) {
-            break;
-        }
+        // if(i--==0) {
+        //     break;
+        // }
     }
     std::cerr << "\n";
     a.outputStats();
