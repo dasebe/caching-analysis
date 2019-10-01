@@ -20,8 +20,23 @@ public:
                 counters["UniqueBytes"]+=req.size;
                 objids.insert(req.oid);
             }
+            // object sizes
             if(req.size > counters["MaxObjSize"]) {
                 counters["MaxObjSize"] = req.size;
+            }
+            if(counters["MinObjSize"]==0) {
+                counters["MinObjSize"] = req.size;
+            } else if(req.size < counters["MinObjSize"]) {
+                counters["MinObjSize"] = req.size;
+            }
+            // timestamps
+            if(req.ts > counters["MaxTs"]) {
+                counters["MaxTs"] = req.ts;
+            }
+            if(counters["MinTs"]==0) {
+                counters["MinTs"] = req.ts;
+            } else if(req.ts < counters["MinTs"]) {
+                counters["MinTs"] = req.ts;
             }
         }
     }
