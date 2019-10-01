@@ -26,7 +26,7 @@ int main (int argc, char* argv[])
 
     Analysis a;
 
-    while(p->parseBatch(100000)){
+    while(p->parseBatch(1000000)){
         std::cerr << ".";
         a.processBatch(p->getBatch());
     }
