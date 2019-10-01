@@ -1,3 +1,5 @@
+#pragma once
+
 #include "request.h"
 #include <iostream>
 #include <unordered_map>

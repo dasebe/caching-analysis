@@ -1,30 +1,22 @@
+#pragma once
+
 #include <iostream>
 #include <fstream>
 
-class Parser {
+class SSVParser : public Parser {
 protected:
-    const std::string traceName;
-    std::ifstream infile;
-    int extraFields;
-
     // parse tmps
     int64_t ts;
     std::string oid;
     int64_t size;
     std::string tmp;
 
-    // request batch to be handed out
-    ReqBatch batch;
-
 public:
-    Parser(std::string fname, int nextraFields)
-        : traceName(fname), infile(fname), extraFields(nextraFields)
+    SSVParser()
+        : Parser()
     {
     }
-    ~Parser() {
-        infile.close();
-    }
-    bool parseBatch(size_t parseReqs) {
+    virtual bool parseBatch(size_t parseReqs) {
         batch.clear();
         batch.reserve(parseReqs);
         bool parsed = false;
@@ -44,12 +36,7 @@ public:
         }
         return parsed;
     }
-
-    ReqBatch & getBatch() {
-        return batch;
-    }
 };
             
 
-
-
+static Factory<SSVParser> ssvparser("ssv");
