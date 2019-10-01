@@ -37,7 +37,6 @@ public:
     SBinParser()
         : Parser()
     {
-        std::cerr << sizeof(CurReq) << "\n";
     }
     virtual void setFile(std::string fname) {
         infile.open(fname, std::fstream::in | std::fstream::binary);
@@ -58,7 +57,6 @@ public:
             endswap(&CurReq.ts);
             endswap(&CurReq.oid);
             endswap(&CurReq.length);
-            std::cerr << CurReq.ts << " " << CurReq.oid << "\n";
             batch.emplace_back(double(CurReq.ts)/1000000000,std::to_string(CurReq.oid),CurReq.length);
             if(--parseReqs == 0) {
                 break;
