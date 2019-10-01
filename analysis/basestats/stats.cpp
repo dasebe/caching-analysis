@@ -3,6 +3,7 @@
 #include "analyze.h"
 #include "parse.h"
 #include "parse_ssv.h"
+#include "parse_sbin.h"
 
 using namespace std;
 
@@ -10,21 +11,20 @@ int main (int argc, char* argv[])
 {
 
     // output help if insufficient params
-    if(argc != 3) {
-        cerr << argv[0] << " inputFile extraFields" << endl;
+    if(argc != 4) {
+        cerr << argv[0] << " inputFile format extraFields" << endl;
         return 1;
     }
 
-    const char* inputFile = argv[1];
-    const uint64_t extraFields = stoull(argv[2]);
+    const string inputFile = argv[1];
+    const string format = argv[2];
+    const uint64_t extraFields = stoull(argv[3]);
 
-    unique_ptr<Parser> p = move(Parser::create_unique("ssv"));
+    unique_ptr<Parser> p = move(Parser::create_unique(format));
     p->setFile(inputFile);
     p->setExtraFields(extraFields);
 
     Analysis a;
-
-    std::cerr << "start\n";
 
     while(p->parseBatch(100000)){
         std::cerr << ".";

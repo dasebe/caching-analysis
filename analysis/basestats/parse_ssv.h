@@ -16,6 +16,10 @@ public:
         : Parser()
     {
     }
+    virtual void setFile(std::string fname) {
+        infile.open(fname);
+    }
+
     virtual bool parseBatch(size_t parseReqs) {
         batch.clear();
         batch.reserve(parseReqs);

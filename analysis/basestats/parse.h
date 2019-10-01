@@ -32,9 +32,7 @@ public:
     ~Parser() {
         infile.close();
     }
-    void setFile(std::string fname) {
-        infile.open(fname);
-    }
+    virtual void setFile(std::string fname) = 0;
     void setExtraFields(int nextraFields) {
         extraFields = nextraFields;
     }
@@ -51,7 +49,7 @@ public:
     static std::unique_ptr<Parser> create_unique(std::string name) {
         std::unique_ptr<Parser> Parser_instance;
         if(get_factory_instance().count(name) != 1) {
-            std::cerr << "unkown cacheType" << std::endl;
+            std::cerr << "unkown format: " << name << "\n";
             return nullptr;
         }
         Parser_instance = move(get_factory_instance()[name]->create_unique());
