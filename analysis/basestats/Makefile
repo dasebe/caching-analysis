@@ -6,7 +6,8 @@ CXXFLAGS += -std=c++11 #-stdlib=libc++ #non-linux
 CXXFLAGS += -MMD -MP # dependency tracking flags
 CXXFLAGS += -I./
 CXXFLAGS += -Wall -Werror 
-LDFLAGS += $(LIBS)
+#LIBS = -lpthread
+#LDFLAGS += $(LIBS)
 all: CXXFLAGS += -O2 # release flags
 all:		$(TARGET)
 
