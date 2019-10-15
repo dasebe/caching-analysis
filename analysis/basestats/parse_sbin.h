@@ -12,6 +12,7 @@ inline void endswap(T *objp)
 }
 using namespace std;
 
+#pragma pack(push)
 #pragma pack(1)
 struct Req
 {
@@ -26,6 +27,7 @@ struct Req
     int32_t length;
     int64_t jobid;
 };
+#pragma pack(pop)
 
 
 class SBinParser : public Parser {
