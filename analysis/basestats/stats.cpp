@@ -22,7 +22,7 @@ int main (int argc, char* argv[])
     const string format = argv[2];
     const uint64_t extraFields = stoull(argv[3]);
 
-    unique_ptr<Parser> p = move(Parser::create_unique(format));
+    unique_ptr<Parser> p = Parser::create_unique(format);
     p->setFile(inputFile);
     p->setExtraFields(extraFields);
 

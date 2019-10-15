@@ -29,7 +29,7 @@ protected:
 public:
     Parser()
     {}
-    ~Parser() {
+    virtual ~Parser() {
         infile.close();
     }
     virtual void setFile(std::string fname) = 0;
@@ -52,7 +52,7 @@ public:
             std::cerr << "unkown format: " << name << "\n";
             return nullptr;
         }
-        Parser_instance = move(get_factory_instance()[name]->create_unique());
+        Parser_instance = get_factory_instance()[name]->create_unique();
         return Parser_instance;
     }
 
