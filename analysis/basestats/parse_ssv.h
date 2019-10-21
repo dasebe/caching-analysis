@@ -33,7 +33,7 @@ public:
                 break;
             }
             parsed=true;
-            batch.emplace_back(ts / (double)1e9,oid,size);
+            batch.emplace_back(ts / 1.0e9,oid,size);
             if(--parseReqs == 0) {
                 break;
             }
