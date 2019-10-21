@@ -6,7 +6,7 @@
 class SSVParser : public Parser {
 protected:
     // parse tmps
-    int64_t ts;
+    double ts;
     std::string oid;
     int64_t size;
     std::string tmp;
@@ -33,7 +33,7 @@ public:
                 break;
             }
             parsed=true;
-            batch.emplace_back(double(ts),oid,size);
+            batch.emplace_back(ts / (double)1e9,oid,size);
             if(--parseReqs == 0) {
                 break;
             }
