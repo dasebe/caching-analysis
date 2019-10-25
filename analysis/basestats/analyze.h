@@ -16,7 +16,6 @@ protected:
     std::unordered_map<std::string, std::tuple<int, double, bool> > reqs;
     std::map<int64_t, int64_t > sizes;
     std::unordered_set<std::string> objids;
-    std::unordered_set<std::string> onehitwonids;
 
 public:
     void processBatch(ReqBatch & batch) {
@@ -50,7 +49,7 @@ public:
             sizes[req.size]++;
             // track greater than 2 day intervals
             if (reqs.count(req.oid)) {
-                if (req.ts - 0.01 > std::get<1>(reqs[req.oid])) {
+                if (req.ts - 172800.0 > std::get<1>(reqs[req.oid])) {
                     counters["Greater2daysInterval"]++;
                 } else {
                     // not a one hit wonder
