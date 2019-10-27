@@ -51,12 +51,10 @@ public:
             if (reqs.count(req.oid)) {
                 if (req.ts - 172800.0 > std::get<1>(reqs[req.oid])) {
                     counters["Greater2daysInterval"]++;
-                } else {
-                    // not a one hit wonder
-                    std::get<2>(reqs[req.oid]) = false;
                 }
                 std::get<0>(reqs[req.oid])++;
                 std::get<1>(reqs[req.oid]) = req.ts;
+                std::get<2>(reqs[req.oid]) = false;
             } else {
                 counters["Greater2daysInterval"]++;
                 reqs[req.oid] = std::make_tuple(1, req.ts, true);
@@ -102,6 +100,7 @@ public:
         for(auto & it: sizes) {
             std::cout << it.first << " " << it.second << "\n";
         }
+        std::cout << "Done!" << "\n";
     }
 };
 
