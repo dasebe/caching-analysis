@@ -1,6 +1,7 @@
 #pragma once
 
 #include "request.h"
+#include <cmath>
 #include <iostream>
 #include <map>
 #include <unordered_map>
@@ -9,11 +10,14 @@
 
 class Analysis {
 protected:
+    struct requestStat{
+        uint64_t request_count;
+        double last_seen_ts;
+        bool two_days_seen;
+    };
+    std::unordered_map<std::string, requestStat > reqs;
     std::unordered_map<std::string, int64_t > counters;
-    std::unordered_map<std::string, int64_t > ranks;
     std::map<int64_t, int64_t > reqranks;
-    // tuple: oid, last_seen_ts, <2 days boolean
-    std::unordered_map<std::string, std::tuple<int, double, bool> > reqs;
     std::map<int64_t, int64_t > sizes;
     std::unordered_set<std::string> objids;
 
@@ -49,18 +53,16 @@ public:
             sizes[req.size]++;
             // track greater than 2 day intervals
             if (reqs.count(req.oid)) {
-                if (req.ts - 172800.0 > std::get<1>(reqs[req.oid])) {
+                if (req.ts - 172800.0 > reqs[req.oid].last_seen_ts) {
                     counters["Greater2daysInterval"]++;
                 }
-                std::get<0>(reqs[req.oid])++;
-                std::get<1>(reqs[req.oid]) = req.ts;
-                std::get<2>(reqs[req.oid]) = false;
+                reqs[req.oid].request_count++;
+                reqs[req.oid].last_seen_ts = req.ts;
+                reqs[req.oid].two_days_seen = false;
             } else {
                 counters["Greater2daysInterval"]++;
-                reqs[req.oid] = std::make_tuple(1, req.ts, true);
+                reqs[req.oid] = requestStat {1, req.ts, true};
             }
-            // rank requests
-            ranks[req.oid]++;
         }
     }
 
@@ -82,16 +84,14 @@ public:
         std::cout << "Greater2daysInterval " << counters["Greater2daysInterval"] << "\n";
         int count = 0;
         for (auto & it: reqs) {
-            if (std::get<2>(it.second)) {
+            if (it.second.two_days_seen) {
                 count++;
             }
+            reqranks[it.second.request_count]++;
         }
         std::cout << "OneHitWonders " << count << "\n";
         
         std::cout << "Ranks" << "\n";
-        for (auto & it: ranks) {
-            reqranks[it.second]++;
-        }
         for (auto & it: reqranks) {
             std::cout << it.first << " " << it.second << "\n";
         }
