@@ -66,9 +66,9 @@ public:
         }
     }
 
-    void outputStats() {
+    void outputStats(int fileIdx) {
         for(auto & it: counters) {
-            std::cout << it.first << " " << it.second << "\n";
+            std::cout << fileIdx << " " << it.first << " " << it.second << " 0 \n";
         }
         double sum = 0;
         double mean = (double)counters["TotalBytes"] / (double)counters["RequestCount"];
@@ -77,11 +77,11 @@ public:
         }
         double stddev = sqrt(sum / (double)counters["RequestCount"]);
         double scv = stddev * stddev / (mean * mean);
-        std::cout << "Mean " << mean << "\n";
-        std::cout << "StdDev " << stddev << "\n";
-        std::cout << "SquaredCoeffVar " << scv << "\n";
+        std::cout << fileIdx << " " << "Mean " << mean << " 0 \n";
+        std::cout << fileIdx << " " << "StdDev " << stddev << " 0 \n";
+        std::cout << fileIdx << " " << "SquaredCoeffVar " << scv << " 0 \n";
 
-        std::cout << "Greater2daysInterval " << counters["Greater2daysInterval"] << "\n";
+        std::cout << fileIdx << " " << "Greater2daysInterval " << counters["Greater2daysInterval"] << " 0 \n";
         int count = 0;
         for (auto & it: reqs) {
             if (it.second.two_days_seen) {
@@ -89,18 +89,15 @@ public:
             }
             reqranks[it.second.request_count]++;
         }
-        std::cout << "OneHitWonders " << count << "\n";
+        std::cout << fileIdx << " " << "OneHitWonders " << count << " 0 \n";
         
-        std::cout << "Ranks" << "\n";
         for (auto & it: reqranks) {
-            std::cout << it.first << " " << it.second << "\n";
+            std::cout << fileIdx << " Ranks " << it.first << " " << it.second << "\n";
         }
 
-        std::cout << "Sizes" << "\n";
         for(auto & it: sizes) {
-            std::cout << it.first << " " << it.second << "\n";
+            std::cout << fileIdx << " Sizes " << it.first << " " << it.second << "\n";
         }
-        std::cout << "Done!" << "\n";
     }
 };
 
