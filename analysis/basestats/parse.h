@@ -37,6 +37,10 @@ public:
         extraFields = nextraFields;
     }
 
+    virtual void closeFile(std::string fname) {
+        infile.close();
+    }
+
     virtual bool parseBatch(size_t parseReqs) = 0;
     ReqBatch & getBatch() {
         return batch;
