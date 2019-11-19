@@ -1,13 +1,24 @@
 #pragma once
 
 #include "request.h"
+#include <cmath>
 #include <iostream>
+#include <map>
 #include <unordered_map>
 #include <unordered_set>
+#include <vector>
 
 class Analysis {
 protected:
+    struct requestStat{
+        uint64_t request_count;
+        double last_seen_ts;
+        bool two_days_seen;
+    };
+    std::unordered_map<std::string, requestStat > reqs;
     std::unordered_map<std::string, int64_t > counters;
+    std::map<int64_t, int64_t > reqranks;
+    std::map<int64_t, int64_t > sizes;
     std::unordered_set<std::string> objids;
 
 public:
@@ -38,6 +49,20 @@ public:
             } else if(req.ts < counters["MinTs"]) {
                 counters["MinTs"] = req.ts;
             }
+            // stddev, scv, size CDF
+            sizes[req.size]++;
+            // track greater than 2 day intervals
+            if (reqs.count(req.oid)) {
+                if (req.ts - 172800.0 > reqs[req.oid].last_seen_ts) {
+                    counters["Greater2daysInterval"]++;
+                }
+                reqs[req.oid].request_count++;
+                reqs[req.oid].last_seen_ts = req.ts;
+                reqs[req.oid].two_days_seen = false;
+            } else {
+                counters["Greater2daysInterval"]++;
+                reqs[req.oid] = requestStat {1, req.ts, true};
+            }
         }
     }
 
@@ -45,6 +70,37 @@ public:
         for(auto & it: counters) {
             std::cout << it.first << " " << it.second << "\n";
         }
+        double sum = 0;
+        double mean = (double)counters["TotalBytes"] / (double)counters["RequestCount"];
+        for(auto & it: sizes) {
+            sum += ((it.first - mean) * (it.first - mean)) * it.second;
+        }
+        double stddev = sqrt(sum / (double)counters["RequestCount"]);
+        double scv = stddev * stddev / (mean * mean);
+        std::cout << "Mean " << mean << "\n";
+        std::cout << "StdDev " << stddev << "\n";
+        std::cout << "SquaredCoeffVar " << scv << "\n";
+
+        std::cout << "Greater2daysInterval " << counters["Greater2daysInterval"] << "\n";
+        int count = 0;
+        for (auto & it: reqs) {
+            if (it.second.two_days_seen) {
+                count++;
+            }
+            reqranks[it.second.request_count]++;
+        }
+        std::cout << "OneHitWonders " << count << "\n";
+        
+        std::cout << "Ranks" << "\n";
+        for (auto & it: reqranks) {
+            std::cout << it.first << " " << it.second << "\n";
+        }
+
+        std::cout << "Sizes" << "\n";
+        for(auto & it: sizes) {
+            std::cout << it.first << " " << it.second << "\n";
+        }
+        std::cout << "Done!" << "\n";
     }
 };
 
